@@ -11,7 +11,6 @@ $dbData = [
 try {
     $pdo = new PDO("mysql:host={$dbData['host']};dbname={$dbData['name']}", $dbData['user'], $dbData['password']);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    echo "Connected successfully!";
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
