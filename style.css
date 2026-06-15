@@ -1,0 +1,307 @@
+/* ============================================================
+   Weet Ik Veel — auth screen
+   ============================================================ */
+
+:root {
+    --ink:        #1c1530;
+    --ink-soft:   #6c6486;
+    --line:       #e8e4f2;
+    --field-bg:   #f6f4fb;
+    --violet:     #7c3aed;
+    --violet-700: #6d28d9;
+    --violet-300: #c4b5fd;
+    --plum:       #2a1148;
+    --ease: cubic-bezier(0.7, 0, 0.16, 1);
+    --slide: 0.9s;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    background: #f3f0fa;
+    overflow: hidden;
+}
+
+/* ---------- ambient background ---------- */
+.aurora {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    filter: blur(70px);
+    opacity: 0.55;
+}
+
+.blob { position: absolute; width: 42vw; height: 42vw; border-radius: 50%; will-change: transform; }
+.blob-a { background: #a78bfa; top: -12vw; left: -8vw;     animation: drift-a 18s var(--ease) infinite alternate; }
+.blob-b { background: #f0abfc; bottom: -16vw; right: -6vw; animation: drift-b 22s var(--ease) infinite alternate; }
+.blob-c { background: #818cf8; bottom: -10vw; left: 28vw;  animation: drift-c 26s var(--ease) infinite alternate; }
+
+@keyframes drift-a { to { transform: translate(8vw, 6vw) scale(1.15); } }
+@keyframes drift-b { to { transform: translate(-7vw, -5vw) scale(1.1); } }
+@keyframes drift-c { to { transform: translate(4vw, -8vw) scale(0.9); } }
+
+/* ---------- shell ---------- */
+.toggle { position: absolute; opacity: 0; pointer-events: none; }
+
+.card {
+    position: relative;
+    z-index: 1;
+    width: 880px;
+    max-width: 100%;
+    height: 560px;
+    background: #fff;
+    border-radius: 28px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.8) inset,
+        0 30px 70px -20px rgba(42, 17, 72, 0.35);
+    overflow: hidden;
+}
+
+/* ---------- form panes ---------- */
+.pane {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transition: transform var(--slide) var(--ease), opacity 0.6s ease;
+}
+.pane--signin { left: 0; z-index: 2; }
+.pane--signup { left: 0; z-index: 1; opacity: 0; }
+
+.form {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 56px;
+}
+
+.eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--violet);
+    margin-bottom: 10px;
+}
+
+h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+}
+
+/* ---------- fields ---------- */
+.field { display: block; position: relative; margin-bottom: 18px; }
+
+.field__label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 7px;
+}
+
+.field input {
+    width: 100%;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--field-bg);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    padding: 13px 15px;
+    outline: none;
+    transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+.field input:hover { background: #f1eef9; }
+.field input:focus {
+    background: #fff;
+    border-color: var(--violet-300);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+}
+
+.link-muted {
+    align-self: flex-end;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    margin: -4px 0 4px;
+    transition: color 0.2s;
+}
+.link-muted:hover { color: var(--violet); }
+
+/* ---------- buttons ---------- */
+.btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 24px;
+    border: none;
+    border-radius: 13px;
+    padding: 14px 22px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    background: linear-gradient(180deg, #8b46f0, var(--violet-700));
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 12px 24px -8px rgba(109, 40, 217, 0.6);
+    transition: transform 0.2s var(--ease), box-shadow 0.2s ease;
+}
+.btn::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -120%;
+    width: 60%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: skewX(-18deg);
+    transition: left 0.6s var(--ease);
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -8px rgba(109, 40, 217, 0.7); }
+.btn:hover::after { left: 140%; }
+.btn:active { transform: translateY(0) scale(0.985); }
+
+.btn--ghost {
+    background: transparent;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    box-shadow: none;
+    margin-top: 28px;
+}
+.btn--ghost:hover { background: rgba(255, 255, 255, 0.12); box-shadow: none; transform: translateY(-2px); }
+
+.swap-line { margin-top: 26px; font-size: 13px; color: var(--ink-soft); }
+.swap-line label { color: var(--violet); font-weight: 600; cursor: pointer; }
+.swap-line label:hover { text-decoration: underline; }
+
+/* ---------- sliding cover ---------- */
+.cover {
+    position: absolute;
+    top: 0; left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 10;
+    transition: transform var(--slide) var(--ease);
+}
+
+.cover__inner {
+    position: relative;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background:
+        radial-gradient(120% 80% at 80% 10%, #9333ea 0%, transparent 55%),
+        radial-gradient(120% 90% at 10% 90%, #6d28d9 0%, transparent 60%),
+        linear-gradient(150deg, #3b1078, var(--plum));
+    color: #fff;
+    transition: transform var(--slide) var(--ease);
+}
+
+/* dotted texture so it isn't a flat gradient */
+.cover__inner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 80%);
+    -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 80%);
+}
+
+.cover__face {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 50px;
+    /* text fades OUT instantly when the slide starts, and fades back IN only
+       after the panel has finished travelling — so no text is ever caught
+       drifting across the screen mid-transition. */
+    transition: opacity 0.3s ease;
+}
+
+.cover__face--toSignup { right: 0; }
+.cover__face--toSignin { left: 0; }
+
+/* resting state (sign-in showing): the "register" invite is the destination */
+.cover__face--toSignup { opacity: 1; transition-delay: calc(var(--slide) - 0.25s); }
+.cover__face--toSignin { opacity: 0; transition-delay: 0s; }
+
+.brand { display: flex; align-items: center; gap: 11px; margin-bottom: 34px; }
+.brand__mark {
+    display: grid;
+    place-items: center;
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(4px);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -1px;
+}
+.brand__name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 16px; }
+
+.cover__face h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+}
+.cover__face p {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.82);
+    max-width: 320px;
+}
+
+/* ---------- checked: reveal sign-up ---------- */
+.toggle:checked ~ .card .pane--signin { transform: translateX(100%); opacity: 0; }
+.toggle:checked ~ .card .pane--signup { transform: translateX(100%); opacity: 1; z-index: 6; }
+
+.toggle:checked ~ .card .cover        { transform: translateX(-100%); }
+.toggle:checked ~ .card .cover__inner { transform: translateX(50%); }
+
+/* swap which invite is the destination -> the one arriving fades in late */
+.toggle:checked ~ .card .cover__face--toSignup { opacity: 0; transition-delay: 0s; }
+.toggle:checked ~ .card .cover__face--toSignin { opacity: 1; transition-delay: calc(var(--slide) - 0.25s); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 720px) {
+    .card { height: auto; min-height: 540px; }
+    .cover { display: none; }
+    .pane { width: 100%; position: relative; }
+    .pane--signup { display: none; }
+
+    .toggle:checked ~ .card .pane--signin { display: none; }
+    .toggle:checked ~ .card .pane--signup {
+        display: block; position: relative;
+        transform: none; opacity: 1;
+    }
+    .form { padding: 44px 32px; }
+}
+
+/* respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition-duration: 0.01ms !important; }
+}
