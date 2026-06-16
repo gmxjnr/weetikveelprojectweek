@@ -1,4 +1,20 @@
 <?php
+require_once 'modules/User.php';
+require_once 'db.php';
+
+$user = new User($pdo);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $loggedInUser = $user->login($_POST['usernameOrEmail'], $_POST['password']);
+        if ($loggedInUser) {
+            echo "Inloggen succesvol! Welkom, " . htmlspecialchars($loggedInUser['username']) . ".";
+        } else {
+            echo "Ongeldige gebruikersnaam/e-mail of wachtwoord.";
+        }
+    } catch (RuntimeException $e) {
+        echo $e->getMessage();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="nl">
