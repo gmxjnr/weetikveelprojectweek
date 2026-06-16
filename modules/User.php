@@ -1,47 +1,88 @@
 <?php
-require_once '../db.php';
 
-class User {
+require_once __DIR__ . '/../db.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+class User
+{
     private $pdo;
+
     private const MAX_ATTEMPTS = 5;
     private const LOCKOUT_MINUTES = 15;
 
-    public function __construct($pdo) {
+    public function __construct($pdo)
+    {
         $this->pdo = $pdo;
     }
 
-    private function getIp(): string {
-        return $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    private function getIp(): string
+    {
+        return $_SERVER['HTTP_X_FORWARDED_FOR']
+            ?? $_SERVER['REMOTE_ADDR']
+            ?? '0.0.0.0';
     }
 
-    private function isRateLimited(string $action): bool {
+    private function isRateLimited(string $action): bool
+    {
         $key = "rate_limit:{$action}:" . $this->getIp();
-        $attempts = apcu_fetch($key) ?: 0;
-        return $attempts >= self::MAX_ATTEMPTS;
+
+        if (!isset($_SESSION[$key])) {
+            return false;
+        }
+
+        if ($_SESSION[$key]['expires'] < time()) {
+            unset($_SESSION[$key]);
+            return false;
+        }
+
+        return $_SESSION[$key]['attempts'] >= self::MAX_ATTEMPTS;
     }
 
-    private function recordAttempt(string $action): void {
+    private function recordAttempt(string $action): void
+    {
         $key = "rate_limit:{$action}:" . $this->getIp();
-        $attempts = apcu_fetch($key) ?: 0;
 
-        if ($attempts === 0) {
-            apcu_store($key, 1, self::LOCKOUT_MINUTES * 60);
+        if (
+            !isset($_SESSION[$key]) ||
+            $_SESSION[$key]['expires'] < time()
+        ) {
+            $_SESSION[$key] = [
+                'attempts' => 1,
+                'expires' => time() + (self::LOCKOUT_MINUTES * 60)
+            ];
         } else {
-            apcu_inc($key);
+            $_SESSION[$key]['attempts']++;
         }
     }
 
-    private function clearAttempts(string $action): void {
-        apcu_delete("rate_limit:{$action}:" . $this->getIp());
+    private function clearAttempts(string $action): void
+    {
+        $key = "rate_limit:{$action}:" . $this->getIp();
+        unset($_SESSION[$key]);
     }
 
-    public function login($usernameOrEmail, $password) {
+    public function login(string $usernameOrEmail, string $password)
+    {
         if ($this->isRateLimited('login')) {
-            throw new \RuntimeException('Te veel pogingen. Probeer het over ' . self::LOCKOUT_MINUTES . ' minuten opnieuw.');
+            throw new RuntimeException(
+                'Te veel inlogpogingen. Probeer het over '
+                . self::LOCKOUT_MINUTES
+                . ' minuten opnieuw.'
+            );
         }
 
-        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE username = :username OR email = :email');
-        $stmt->execute(['username' => $usernameOrEmail, 'email' => $usernameOrEmail]);
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM users WHERE username = :username OR email = :email'
+        );
+
+        $stmt->execute([
+            'username' => $usernameOrEmail,
+            'email' => $usernameOrEmail
+        ]);
+
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
@@ -53,15 +94,54 @@ class User {
         return false;
     }
 
-    public function register($username, $email, $password) {
+    public function register(
+        string $username,
+        string $email,
+        string $password
+    ): bool {
+
         if ($this->isRateLimited('register')) {
-            throw new \RuntimeException('Te veel registraties. Probeer het over ' . self::LOCKOUT_MINUTES . ' minuten opnieuw.');
+            throw new RuntimeException(
+                'Te veel registraties. Probeer het over '
+                . self::LOCKOUT_MINUTES
+                . ' minuten opnieuw.'
+            );
         }
 
-        $this->recordAttempt('register');
+        $stmt = $this->pdo->prepare(
+            'SELECT id FROM users WHERE username = :username OR email = :email'
+        );
+
+        $stmt->execute([
+            'username' => $username,
+            'email' => $email
+        ]);
+
+        if ($stmt->fetch()) {
+            throw new RuntimeException(
+                'Gebruikersnaam of e-mailadres bestaat al.'
+            );
+        }
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->pdo->prepare('INSERT INTO users (username, email, password, created_at) VALUES (:username, :email, :password, NOW())');
-        return $stmt->execute(['username' => $username, 'email' => $email, 'password' => $hashedPassword]);
+
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO users (username, email, password)
+             VALUES (:username, :email, :password)'
+        );
+
+        $success = $stmt->execute([
+            'username' => $username,
+            'email' => $email,
+            'password' => $hashedPassword
+        ]);
+
+        if (!$success) {
+            $this->recordAttempt('register');
+            return false;
+        }
+
+        $this->clearAttempts('register');
+        return true;
     }
 }
