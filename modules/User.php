@@ -87,6 +87,7 @@ class User
 
         if ($user && password_verify($password, $user['password_hash'])) {
             $this->clearAttempts('login');
+            $_SESSION['user_id'] = $user['id'];
             return $user;
         }
 
