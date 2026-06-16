@@ -9,10 +9,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST"){
         $userRegistered = $user->register($_POST['username'], $_POST['email'], $_POST['password']);
         if ($userRegistered){
             echo "Register successfull!";
-            header('login.php');
+            header("Location: login.php");
             exit();
         }
     } catch (Exception $e) {
-        $echo = "". $e->getMessage() ."";
+        echo $e->getMessage();
     }
 }

@@ -85,7 +85,7 @@ class User
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user && password_verify($password, $user['password_hash'])) {
             $this->clearAttempts('login');
             return $user;
         }
@@ -126,7 +126,7 @@ class User
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         $stmt = $this->pdo->prepare(
-            'INSERT INTO users (username, email, password)
+            'INSERT INTO users (username, email, password_hash)
              VALUES (:username, :email, :password)'
         );
 
