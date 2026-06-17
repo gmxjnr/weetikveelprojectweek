@@ -7,7 +7,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $loggedInUser = $user->login($_POST['usernameOrEmail'], $_POST['password']);
         if ($loggedInUser) {
-            echo "Inloggen succesvol! Welkom, " . htmlspecialchars($loggedInUser['username']) . ".";
+            header('location: upload.php');
+            exit;
         } else {
             echo "Ongeldige gebruikersnaam/e-mail of wachtwoord.";
         }

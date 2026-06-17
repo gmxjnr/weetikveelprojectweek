@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+if (!isset($_SESSION["user_id"])) {
+    header('location: login.php');
+    exit;
+}
+
 require_once "db.php";
 require_once "modules/Files.php";
 
