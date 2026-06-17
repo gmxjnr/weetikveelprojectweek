@@ -9,7 +9,7 @@ class Files
         $this->pdo = $pdo;
     }
 
-    public function uploadFile(?int $uploaderId, array $file): ?string
+    public function uploadFile($uploaderId, $file) : bool|string|null
     {
         $originalName = $file['name'];
         $size = $file['size'];
@@ -48,7 +48,7 @@ class Files
         return $ok ? $shareToken : null;
     }
 
-    public function getByToken(string $token): ?array
+    public function getByToken($token) : array|null
     {
         $stmt = $this->pdo->prepare("
             SELECT * FROM files WHERE share_token = :token
@@ -60,7 +60,7 @@ class Files
         return $file ?: null;
     }
 
-    public function deleteByToken(string $token): bool
+    public function deleteByToken($token): bool
     {
         $stmt = $this->pdo->prepare("
             DELETE FROM files WHERE share_token = :token
@@ -71,12 +71,12 @@ class Files
         return $stmt->rowCount() > 0;
     }
 
-    public function checkFileType(array $file): string
+    public function checkFileType($file): string
     {
         return (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
     }
 
-    private function getDirectoryByType(string $mime): string
+    private function getDirectoryByType($mime): string
     {
         return match (true) {
             str_starts_with($mime, 'image/') => 'image',
