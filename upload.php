@@ -61,5 +61,6 @@ if (isset($_FILES['file'])) {
     <button type="submit">Upload</button>
 </form>
 
+<a href="logout.php">Log out</a>
 </body>
 </html>
