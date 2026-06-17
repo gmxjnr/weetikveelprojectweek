@@ -13,32 +13,32 @@ class User
     private const MAX_ATTEMPTS = 5;
     private const LOCKOUT_MINUTES = 15;
 
-    public function __construct($pdo)
+    public function __construct($pdo)        // runs on `new User($pdo)`
     {
-        $this->pdo = $pdo;
+        $this->pdo = $pdo;                   // save connection for later use
     }
 
-    private function getIp(): string
+    private function getIp(): string         //returns visitor IP as string
     {
-        return $_SERVER['HTTP_X_FORWARDED_FOR']
-            ?? $_SERVER['REMOTE_ADDR']
-            ?? '0.0.0.0';
+        return $_SERVER['HTTP_X_FORWARDED_FOR']  //  if the site sits behind a proxy or load balancer the IP is put in header 
+            ?? $_SERVER['REMOTE_ADDR'] //normal way to get the visitor's IP
+            ?? '0.0.0.0';                    // fallback default
     }
 
     private function isRateLimited(string $action): bool
     {
-        $key = "rate_limit:{$action}:" . $this->getIp();
+        $key = "rate_limit:{$action}:" . $this->getIp(); //builds a key from the action plus the IP
 
         if (!isset($_SESSION[$key])) {
             return false;
-        }
+        } //No record at all → false
 
         if ($_SESSION[$key]['expires'] < time()) {
             unset($_SESSION[$key]);
             return false;
-        }
+        } //Record exists but expired → wipe it, false
 
-        return $_SESSION[$key]['attempts'] >= self::MAX_ATTEMPTS;
+        return $_SESSION[$key]['attempts'] >= self::MAX_ATTEMPTS; //Record still active → true/false depending on whether attempts ≥ 5
     }
 
     private function recordAttempt(string $action): void
@@ -48,6 +48,7 @@ class User
         if (
             !isset($_SESSION[$key]) ||
             $_SESSION[$key]['expires'] < time()
+            // fresh counter when no record yet or there is a record but it has expired
         ) {
             $_SESSION[$key] = [
                 'attempts' => 1,
