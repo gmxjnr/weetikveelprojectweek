@@ -9,21 +9,27 @@ $files = new Files($pdo);
 // When the browser sends the (already-encrypted) file via fetch, we answer with
 // JSON instead of HTML. The server never sees the real file here, only ciphertext.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json');
+    // Buffer output so a stray PHP warning can't corrupt the JSON response.
+    ob_start();
+    $response = ['success' => false, 'message' => 'Upload mislukt!'];
 
-    if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-        echo json_encode(['success' => false, 'message' => 'Upload error']);
-        exit;
+    try {
+        if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            $response = ['success' => false, 'message' => 'Upload error'];
+        } else {
+            $uploaderId = $_SESSION['user_id'] ?? null;
+            $token = $files->uploadFile($uploaderId, $_FILES['file']);
+            if ($token) {
+                $response = ['success' => true, 'token' => $token];
+            }
+        }
+    } catch (Throwable $e) {
+        $response = ['success' => false, 'message' => $e->getMessage()];
     }
 
-    $uploaderId = $_SESSION['user_id'] ?? null;
-    $token = $files->uploadFile($uploaderId, $_FILES['file']);
-
-    echo json_encode(
-        $token
-            ? ['success' => true, 'token' => $token]
-            : ['success' => false, 'message' => 'Upload mislukt!']
-    );
+    ob_end_clean(); // discard any warning HTML PHP may have printed
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit;
 }
 ?>
