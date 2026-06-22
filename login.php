@@ -1,13 +1,17 @@
 <?php
 require_once 'modules/User.php';
+require_once 'modules/Logs.php';
 require_once 'db.php';
 
 $user = new User($pdo);
+$logs = new Logs($pdo);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $loggedInUser = $user->login($_POST['usernameOrEmail'], $_POST['password']);
         if ($loggedInUser) {
             $_SESSION['user_id'] = $loggedInUser['id'];
+            $logs->logAction($_SESSION['user_id'], 'login', 'User logged in successfully.');
             header('Location: upload.php');
             exit;
         } else {

@@ -3,8 +3,11 @@ session_start();
 
 require_once "db.php";
 require_once "modules/Files.php";
+require_once "modules/Logs.php";
 
 $files = new Files($pdo);
+$logs = new Logs($pdo);
+
 
 // When the browser sends the (already-encrypted) file via fetch, we answer with
 // JSON instead of HTML. The server never sees the real file here, only ciphertext.
@@ -21,6 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = $files->uploadFile($uploaderId, $_FILES['file']);
             if ($token) {
                 $response = ['success' => true, 'token' => $token];
+
+                $logs->logAction($uploaderId, 'file_upload', "File uploaded: {$token}");
+            } else {
+                $response = ['success' => false, 'message' => 'Bestand kon niet worden opgeslagen'];
+                $logs->logAction($uploaderId, 'file_upload_failed', "File upload failed: {$_FILES['file']['name']}");
             }
         }
     } catch (Throwable $e) {
