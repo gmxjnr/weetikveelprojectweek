@@ -51,10 +51,10 @@ Alle projectdocumentatie staat in de map [`docs/`](./docs):
 
 ## Team
 
-- Milan Ramakers
-- Tijn van Elburg
-- Ivo
-- Malek
+- Milan R
+- Tijn E.
+- Ivo I.
+- Malek C.
 
 ## Status
 
