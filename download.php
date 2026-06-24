@@ -36,15 +36,40 @@ if (isset($_GET['raw'])) {
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Download File</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weet Ik Veel — Download</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Bestand ontsleutelen</h2>
-<p id="status">Bezig met ophalen en ontsleutelen...</p>
-<div id="result" hidden></div>
+    <!-- ambient background -->
+    <div class="aurora" aria-hidden="true">
+        <span class="blob blob-a"></span>
+        <span class="blob blob-b"></span>
+        <span class="blob blob-c"></span>
+    </div>
 
-<noscript>Deze pagina heeft JavaScript nodig voor de ontsleuteling.</noscript>
+    <div class="card card--solo">
+        <div class="pane pane--solo">
+            <div class="form form--solo">
+                <span class="eyebrow">End-to-end versleuteld</span>
+                <h1>Bestand ontsleutelen</h1>
+
+                <p id="status" class="status-line">Bezig met ophalen en ontsleutelen...</p>
+
+                <div id="result" class="result-block" hidden></div>
+
+                <p class="swap-line swap-line--center">
+                    <a href="login.php" class="link-muted">Terug naar inloggen</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <noscript>Deze pagina heeft JavaScript nodig voor de ontsleuteling.</noscript>
 
 <script>
 // ---- helper: base64url -> bytes ----
@@ -68,6 +93,7 @@ const resultEl = document.getElementById('result');
     const keyB64 = hash.get('k');
 
     if (!keyB64) {
+        statusEl.classList.add('is-error');
         statusEl.textContent = 'Geen sleutel in de link — ontsleutelen onmogelijk.';
         return;
     }
@@ -99,12 +125,24 @@ const resultEl = document.getElementById('result');
         const a = document.createElement('a');
         a.href = url;
         a.download = name;
+        a.className = 'btn';
         a.textContent = 'Download ' + name;
 
+        statusEl.classList.add('is-success');
         statusEl.textContent = 'Ontsleuteld!';
-        resultEl.appendChild(a);
+
+        const icon = document.createElement('div');
+        icon.className = 'download-ready';
+        icon.innerHTML =
+            '<span class="download-ready__icon">&#8595;</span>' +
+            '<span class="download-ready__name"></span>';
+        icon.querySelector('.download-ready__name').textContent = name;
+        icon.appendChild(a);
+
+        resultEl.appendChild(icon);
         resultEl.hidden = false;
     } catch (err) {
+        statusEl.classList.add('is-error');
         statusEl.textContent = 'Kon het bestand niet ontsleutelen (verkeerde of beschadigde link).';
     }
 })();
