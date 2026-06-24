@@ -11,8 +11,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST"){
         $userRegistered = $user->register($_POST['username'], $_POST['email'], $_POST['password']);
         if ($userRegistered){
             echo "Register successfull!";
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-            $logs->logAction($ip, 'user_registration', "New user registered: {$_POST['username']}");
+            $userId = is_array($userRegistered) ? ($userRegistered['id'] ?? null) : null;
+            $logs->logAction($userId, 'user_registration', "New user registered: {$_POST['username']}");
             header("Location: login.php");
             exit();
         }

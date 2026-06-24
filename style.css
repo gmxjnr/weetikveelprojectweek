@@ -13,6 +13,8 @@
     --plum:       #2a1148;
     --ease: cubic-bezier(0.7, 0, 0.16, 1);
     --slide: 0.9s;
+    --good: #16a34a;
+    --bad:  #dc2626;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -175,6 +177,13 @@ h1 {
 .btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -8px rgba(109, 40, 217, 0.7); }
 .btn:hover::after { left: 140%; }
 .btn:active { transform: translateY(0) scale(0.985); }
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.btn:disabled::after { display: none; }
 
 .btn--ghost {
     background: transparent;
@@ -188,7 +197,7 @@ h1 {
 .swap-line label { color: var(--violet); font-weight: 600; cursor: pointer; }
 .swap-line label:hover { text-decoration: underline; }
 
-/* ---------- sliding cover ---------- */
+/* ---------- sliding cover (login only) ---------- */
 .cover {
     position: absolute;
     top: 0; left: 50%;
@@ -212,7 +221,6 @@ h1 {
     transition: transform var(--slide) var(--ease);
 }
 
-/* dotted texture so it isn't a flat gradient */
 .cover__inner::before {
     content: "";
     position: absolute;
@@ -232,16 +240,12 @@ h1 {
     flex-direction: column;
     justify-content: center;
     padding: 0 50px;
-    /* text fades OUT instantly when the slide starts, and fades back IN only
-       after the panel has finished travelling — so no text is ever caught
-       drifting across the screen mid-transition. */
     transition: opacity 0.3s ease;
 }
 
 .cover__face--toSignup { right: 0; }
 .cover__face--toSignin { left: 0; }
 
-/* resting state (sign-in showing): the "register" invite is the destination */
 .cover__face--toSignup { opacity: 1; transition-delay: calc(var(--slide) - 0.25s); }
 .cover__face--toSignin { opacity: 0; transition-delay: 0s; }
 
@@ -275,16 +279,165 @@ h1 {
     max-width: 320px;
 }
 
-/* ---------- checked: reveal sign-up ---------- */
 .toggle:checked ~ .card .pane--signin { transform: translateX(100%); opacity: 0; }
 .toggle:checked ~ .card .pane--signup { transform: translateX(100%); opacity: 1; z-index: 6; }
 
 .toggle:checked ~ .card .cover        { transform: translateX(-100%); }
 .toggle:checked ~ .card .cover__inner { transform: translateX(50%); }
 
-/* swap which invite is the destination -> the one arriving fades in late */
 .toggle:checked ~ .card .cover__face--toSignup { opacity: 0; transition-delay: 0s; }
 .toggle:checked ~ .card .cover__face--toSignin { opacity: 1; transition-delay: calc(var(--slide) - 0.25s); }
+
+/* ============================================================
+   Upload / download screens
+   Same card + aurora shell as login, single centered pane
+   (no sliding cover panel — there's nothing to swap to).
+   ============================================================ */
+
+.card--solo {
+    width: 480px;
+    height: auto;
+    min-height: 460px;
+}
+
+.pane--solo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    opacity: 1;
+}
+
+.form--solo {
+    padding: 56px 48px;
+    gap: 0;
+}
+
+/* drop-zone style file input, replacing the bare <input type="file"> */
+.dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 32px 16px;
+    margin-bottom: 18px;
+    border: 1.5px dashed var(--violet-300);
+    border-radius: 14px;
+    background: var(--field-bg);
+    color: var(--ink-soft);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.25s ease, background 0.25s ease;
+}
+.dropzone:hover,
+.dropzone.is-dragover {
+    background: #f1eef9;
+    border-color: var(--violet);
+}
+.dropzone__icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: rgba(124, 58, 237, 0.12);
+    color: var(--violet);
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    font-weight: 700;
+}
+.dropzone__filename {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* status line under the heading, used while encrypting/decrypting */
+.status-line {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: -4px 0 18px;
+    min-height: 18px;
+}
+.status-line.is-error { color: var(--bad); }
+.status-line.is-success { color: var(--good); }
+
+/* result block: share link after upload, decrypted-file link after download */
+.result-block {
+    margin-top: 22px;
+    padding: 18px;
+    border-radius: 14px;
+    background: var(--field-bg);
+    border: 1.5px solid var(--line);
+}
+.result-block__label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 9px;
+}
+.result-block .share-link {
+    display: block;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--violet-700);
+    word-break: break-all;
+    text-decoration: none;
+}
+.result-block .share-link:hover { text-decoration: underline; }
+
+/* big centered icon + filename + button, shown once a download is decrypted */
+.download-ready {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+}
+.download-ready__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    background: rgba(124, 58, 237, 0.12);
+    color: var(--violet);
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    margin-bottom: 6px;
+}
+.download-ready__name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    word-break: break-all;
+}
+
+.swap-line--center { text-align: center; }
+
+/* lightweight footer link back to the file overview / login, used on
+   upload & download screens since there's no sliding cover to anchor to */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 26px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    align-self: center;
+}
+.back-link:hover { color: var(--violet); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 720px) {
@@ -299,6 +452,11 @@ h1 {
         transform: none; opacity: 1;
     }
     .form { padding: 44px 32px; }
+}
+
+@media (max-width: 540px) {
+    .card--solo { width: 100%; }
+    .form--solo { padding: 40px 28px; }
 }
 
 /* respect reduced-motion preferences */
